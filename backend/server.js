@@ -8,23 +8,49 @@ const { Pool } = require("pg");
 
 const app = express();
 
-app.use(cors());
-app.use(express.json());
+// Render provides PORT automatically.
+// Locally, the backend uses port 5000.
+const PORT = Number(process.env.PORT || 5000);
 
+// Basic configuration checks
+if (!process.env.JWT_SECRET || process.env.JWT_SECRET.length < 32) {
+    console.error("ERROR: JWT_SECRET is missing or must be at least 32 characters.");
+    process.exit(1);
+}
+
+if (
+    !process.env.DB_HOST ||
+    !process.env.DB_NAME ||
+    !process.env.DB_USER ||
+    !process.env.DB_PASSWORD
+) {
+    console.error("ERROR: Database environment variables are missing.");
+    process.exit(1);
+}
+
+// Middleware
+app.use(cors());
+app.use(express.json({ limit: "1mb" }));
+
+// PostgreSQL connection
 const pool = new Pool({
     host: process.env.DB_HOST,
     port: Number(process.env.DB_PORT || 5432),
     database: process.env.DB_NAME,
     user: process.env.DB_USER,
-    password: process.env.DB_PASSWORD
+    password: process.env.DB_PASSWORD,
+    ssl: {
+        rejectUnauthorized: true
+    },
+    connectionTimeoutMillis: 10000
 });
 
-// Database connection error logging
+// Database error handling
 pool.on("error", (err) => {
-    console.error("Unexpected database error:", err.message);
+    console.error("Unexpected PostgreSQL error:", err.message);
 });
 
-// Health check
+// Root / health check
 app.get("/", (req, res) => {
     res.json({
         success: true,
@@ -32,7 +58,7 @@ app.get("/", (req, res) => {
     });
 });
 
-// Database check
+// Database connection check
 app.get("/api/db-check", async (req, res) => {
     try {
         const result = await pool.query("SELECT NOW() AS server_time");
@@ -43,7 +69,8 @@ app.get("/api/db-check", async (req, res) => {
             databaseTime: result.rows[0].server_time
         });
     } catch (err) {
-        console.error("Database error:", err.message);
+        console.error("Database connection error:", err.message);
+
         res.status(500).json({
             success: false,
             message: "Database connection failed"
@@ -62,10 +89,13 @@ function authenticateToken(req, res, next) {
         });
     }
 
-    const token = authHeader.split(" ")[1];
+    const token = authHeader.substring(7);
 
     try {
-        req.user = jwt.verify(token, process.env.JWT_SECRET);
+        req.user = jwt.verify(token, process.env.JWT_SECRET, {
+            issuer: "earn-karo-2-0"
+        });
+
         next();
     } catch (err) {
         return res.status(401).json({
@@ -77,7 +107,7 @@ function authenticateToken(req, res, next) {
 
 // Admin permission middleware
 function requireAdmin(req, res, next) {
-    if (req.user.role !== "admin") {
+    if (!req.user || req.user.role !== "admin") {
         return res.status(403).json({
             success: false,
             message: "Admin access required"
@@ -92,15 +122,19 @@ app.post("/api/auth/register", async (req, res) => {
     try {
         const { name, email, password } = req.body;
 
-        if (!name || !email || !password) {
+        if (
+            typeof name !== "string" ||
+            typeof email !== "string" ||
+            typeof password !== "string"
+        ) {
             return res.status(400).json({
                 success: false,
                 message: "Name, email and password are required"
             });
         }
 
-        const cleanName = String(name).trim();
-        const cleanEmail = String(email).trim().toLowerCase();
+        const cleanName = name.trim();
+        const cleanEmail = email.trim().toLowerCase();
 
         if (cleanName.length < 2 || cleanName.length > 100) {
             return res.status(400).json({
@@ -116,7 +150,7 @@ app.post("/api/auth/register", async (req, res) => {
             });
         }
 
-        if (typeof password !== "string" || password.length < 8 || password.length > 72) {
+        if (password.length < 8 || password.length > 72) {
             return res.status(400).json({
                 success: false,
                 message: "Password must be between 8 and 72 characters"
@@ -126,7 +160,8 @@ app.post("/api/auth/register", async (req, res) => {
         const passwordHash = await bcrypt.hash(password, 12);
 
         const result = await pool.query(
-            `INSERT INTO users (name, email, password_hash, role)
+            `INSERT INTO users
+                (name, email, password_hash, role)
              VALUES ($1, $2, $3, 'user')
              RETURNING id, name, email, role, created_at`,
             [cleanName, cleanEmail, passwordHash]
@@ -186,6 +221,7 @@ app.post("/api/auth/login", async (req, res) => {
         }
 
         const user = result.rows[0];
+
         const passwordMatches = await bcrypt.compare(
             password,
             user.password_hash
@@ -262,7 +298,7 @@ app.get("/api/auth/me", authenticateToken, async (req, res) => {
     }
 });
 
-// Public list of active earning apps
+// List active earning apps
 app.get("/api/apps", async (req, res) => {
     try {
         const result = await pool.query(
@@ -319,7 +355,7 @@ app.post(
 
             try {
                 parsedUrl = new URL(referral_url.trim());
-            } catch {
+            } catch (err) {
                 return res.status(400).json({
                     success: false,
                     message: "Enter a valid referral URL"
@@ -333,7 +369,7 @@ app.post(
                 });
             }
 
-            const amount = Number(commission_amount || 0);
+            const amount = Number(commission_amount ?? 0);
 
             if (!Number.isFinite(amount) || amount < 0) {
                 return res.status(400).json({
@@ -350,10 +386,14 @@ app.post(
                  RETURNING *`,
                 [
                     name.trim(),
-                    description || "",
-                    category || "Other",
+                    typeof description === "string" ? description.trim() : "",
+                    typeof category === "string" && category.trim()
+                        ? category.trim()
+                        : "Other",
                     referral_url.trim(),
-                    commission_type || "Varies",
+                    typeof commission_type === "string" && commission_type.trim()
+                        ? commission_type.trim()
+                        : "Varies",
                     amount
                 ]
             );
@@ -374,23 +414,60 @@ app.post(
     }
 );
 
-// Start server
-const PORT = Number(process.env.PORT || 5000);
-
-if (!process.env.JWT_SECRET || process.env.JWT_SECRET.length < 32) {
-    console.error("JWT_SECRET is missing or too short in .env");
-    process.exit(1);
-}
-
-const server = app.listen(PORT, () => {
-    console.log(`Earn Karo 2.0 backend running at http://localhost:${PORT}`);
+// Unknown API routes
+app.use("/api", (req, res) => {
+    res.status(404).json({
+        success: false,
+        message: "API endpoint not found"
+    });
 });
 
-async function shutdown() {
-    server.close();
-    await pool.end();
-    process.exit(0);
+// General error handler
+app.use((err, req, res, next) => {
+    console.error("Server error:", err.message);
+
+    if (res.headersSent) {
+        return next(err);
+    }
+
+    res.status(500).json({
+        success: false,
+        message: "Internal server error"
+    });
+});
+
+// Start server on Render's assigned port or local port 5000
+const server = app.listen(PORT, "0.0.0.0", () => {
+    console.log(`Earn Karo 2.0 backend listening on port ${PORT}`);
+});
+
+// Graceful shutdown
+let isShuttingDown = false;
+
+async function shutdown(signal) {
+    if (isShuttingDown) return;
+    isShuttingDown = true;
+
+    console.log(`${signal} received. Shutting down...`);
+
+    const forceExit = setTimeout(() => {
+        console.error("Shutdown timed out.");
+        process.exit(1);
+    }, 10000);
+
+    forceExit.unref();
+
+    server.close(async () => {
+        try {
+            await pool.end();
+            console.log("Database pool closed.");
+            process.exit(0);
+        } catch (err) {
+            console.error("Shutdown error:", err.message);
+            process.exit(1);
+        }
+    });
 }
 
-process.on("SIGINT", shutdown);
-process.on("SIGTERM", shutdown);
+process.on("SIGINT", () => shutdown("SIGINT"));
+process.on("SIGTERM", () => shutdown("SIGTERM"));
