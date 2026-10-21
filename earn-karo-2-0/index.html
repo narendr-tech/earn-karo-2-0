@@ -1,0 +1,883 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>Earn Karo 2.0 | Smart Earning Hub</title>
+
+  <meta
+    name="description"
+    content="Earn Karo 2.0 - Manage earning apps, referral links and commission tracking."
+  >
+
+  <link rel="stylesheet" href="style.css">
+
+  <style>
+    /* Basic responsive styling */
+    * {
+      box-sizing: border-box;
+    }
+
+    [hidden],
+    .hidden {
+      display: none !important;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: #050b19;
+      color: #eaf2ff;
+      font-family: Arial, Helvetica, sans-serif;
+    }
+
+    button,
+    input,
+    select,
+    textarea {
+      font: inherit;
+    }
+
+    button {
+      cursor: pointer;
+    }
+
+    input,
+    select,
+    textarea {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid #294267;
+      border-radius: 10px;
+      background: #eaf2ff;
+      color: #101a30;
+      margin-top: 7px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 15px;
+      color: #b8c9e6;
+      font-size: 13px;
+    }
+
+    button:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    .site-header {
+      min-height: 65px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 15px;
+      padding: 12px 5%;
+      border-bottom: 1px solid #1c2d4b;
+      background: #071020;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-weight: bold;
+      font-size: 18px;
+    }
+
+    .brand-icon {
+      display: grid;
+      place-items: center;
+      width: 40px;
+      height: 40px;
+      border-radius: 13px;
+      background: linear-gradient(135deg, #2484ff, #27d6ff);
+      color: white;
+      box-shadow: 0 0 20px #1688ff55;
+    }
+
+    .brand small {
+      display: block;
+      margin-top: 4px;
+      color: #8199bd;
+      font-size: 9px;
+      letter-spacing: 2px;
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .page {
+      width: min(1200px, 92%);
+      margin: 0 auto;
+      padding: 40px 0;
+    }
+
+    .auth-layout {
+      min-height: 75vh;
+      display: grid;
+      grid-template-columns: 1.15fr 0.85fr;
+      align-items: center;
+      gap: 45px;
+    }
+
+    .hero-kicker {
+      color: #70aaff;
+      font-size: 12px;
+      font-weight: bold;
+      letter-spacing: 2px;
+    }
+
+    .hero h1 {
+      max-width: 650px;
+      font-size: clamp(34px, 5vw, 58px);
+      line-height: 1.15;
+      margin: 20px 0;
+    }
+
+    .gradient-text {
+      background: linear-gradient(90deg, #5c9cff, #39e0f4);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+
+    .hero p {
+      max-width: 550px;
+      color: #a9bad5;
+      line-height: 1.9;
+    }
+
+    .feature-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 20px;
+      margin-top: 30px;
+    }
+
+    .feature {
+      padding: 13px;
+      border: 1px solid #23385d;
+      border-radius: 12px;
+      background: #0b1830;
+      color: #c5d7f3;
+      font-size: 13px;
+    }
+
+    .glass {
+      border: 1px solid #253c61;
+      border-radius: 22px;
+      background: linear-gradient(145deg, #0d1d39, #081226);
+      box-shadow: 0 20px 65px #0005;
+    }
+
+    .auth-card {
+      width: 100%;
+      max-width: 440px;
+      padding: 28px;
+      justify-self: end;
+    }
+
+    .tabs {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      padding: 5px;
+      border-radius: 12px;
+      background: #071126;
+      margin-bottom: 28px;
+    }
+
+    .tab {
+      padding: 12px 8px;
+      border: 1px solid transparent;
+      border-radius: 9px;
+      background: transparent;
+      color: #a9bad5;
+      font-size: 13px;
+      font-weight: bold;
+    }
+
+    .tab.active {
+      border-color: #34588b;
+      background: #17335f;
+      color: white;
+    }
+
+    .auth-card h2 {
+      margin-bottom: 8px;
+      font-size: 25px;
+    }
+
+    .muted {
+      color: #9cafcf;
+      font-size: 13px;
+      line-height: 1.7;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      padding: 12px 17px;
+      border: 1px solid #34527d;
+      border-radius: 10px;
+      background: #102344;
+      color: white;
+      font-weight: bold;
+    }
+
+    .btn-primary {
+      border: none;
+      background: linear-gradient(100deg, #2465f5, #138fe5);
+      box-shadow: 0 8px 24px #126af344;
+    }
+
+    .btn-primary:hover {
+      filter: brightness(1.12);
+    }
+
+    .btn-secondary {
+      background: #102344;
+    }
+
+    .btn-danger {
+      border-color: #733b51;
+      background: #3a1828;
+    }
+
+    .full {
+      width: 100%;
+    }
+
+    .form-message {
+      min-height: 20px;
+      margin-top: 13px;
+      font-size: 13px;
+      line-height: 1.6;
+      overflow-wrap: anywhere;
+    }
+
+    .form-message.error {
+      color: #ff8b9b;
+    }
+
+    .form-message.success {
+      color: #55e4b3;
+    }
+
+    .demo-box {
+      margin-top: 20px;
+      padding: 13px;
+      border: 1px solid #294267;
+      border-radius: 12px;
+      color: #b8c9e6;
+      font-size: 12px;
+      line-height: 1.8;
+      overflow-wrap: anywhere;
+    }
+
+    .dashboard-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 18px;
+      margin-bottom: 28px;
+    }
+
+    .dashboard-top h1 {
+      margin: 0 0 8px;
+      font-size: clamp(28px, 4vw, 42px);
+    }
+
+    .dashboard-nav {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 25px;
+    }
+
+    .dashboard-nav button.active {
+      border-color: #338cff;
+      background: #153568;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 16px;
+      margin-bottom: 28px;
+    }
+
+    .stat-card {
+      padding: 22px;
+      border: 1px solid #233b61;
+      border-radius: 16px;
+      background: #0b1830;
+    }
+
+    .stat-card p {
+      color: #9cafcf;
+      font-size: 13px;
+    }
+
+    .stat-card h2 {
+      margin-bottom: 0;
+      font-size: 28px;
+    }
+
+    .panel {
+      padding: 24px;
+      margin-bottom: 22px;
+    }
+
+    .panel h2 {
+      margin-top: 0;
+    }
+
+    .apps-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 17px;
+    }
+
+    .app-card {
+      padding: 20px;
+      border: 1px solid #284267;
+      border-radius: 16px;
+      background: #0b1830;
+      overflow-wrap: anywhere;
+    }
+
+    .app-card h3 {
+      margin-top: 0;
+    }
+
+    .app-card p {
+      color: #a9bad5;
+      font-size: 13px;
+      line-height: 1.7;
+    }
+
+    .app-card .btn {
+      margin-top: 10px;
+    }
+
+    .app-category {
+      display: inline-block;
+      margin-bottom: 12px;
+      padding: 5px 9px;
+      border-radius: 20px;
+      background: #132f56;
+      color: #7fc8ff;
+      font-size: 11px;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0 15px;
+    }
+
+    .form-grid .full-span {
+      grid-column: 1 / -1;
+    }
+
+    .empty-state {
+      padding: 28px;
+      border: 1px dashed #294267;
+      border-radius: 12px;
+      color: #9cafcf;
+      text-align: center;
+      line-height: 1.8;
+    }
+
+    .site-footer {
+      padding: 22px;
+      border-top: 1px solid #1c2d4b;
+      color: #8199bd;
+      text-align: center;
+      font-size: 12px;
+    }
+
+    @media (max-width: 850px) {
+      .auth-layout {
+        grid-template-columns: 1fr;
+        gap: 30px;
+        padding-top: 20px;
+      }
+
+      .auth-card {
+        justify-self: center;
+        max-width: 520px;
+      }
+
+      .hero {
+        text-align: center;
+      }
+
+      .hero p {
+        margin-left: auto;
+        margin-right: auto;
+      }
+
+      .feature-row {
+        justify-content: center;
+      }
+
+      .apps-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 560px) {
+      .page {
+        width: 94%;
+        padding: 25px 0;
+      }
+
+      .site-header {
+        padding: 10px 3%;
+      }
+
+      .brand {
+        font-size: 15px;
+      }
+
+      .auth-card {
+        padding: 20px;
+      }
+
+      .stats-grid,
+      .apps-grid,
+      .form-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .form-grid .full-span {
+        grid-column: auto;
+      }
+
+      .panel {
+        padding: 17px;
+      }
+
+      .dashboard-top .btn {
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <header class="site-header">
+    <div class="brand">
+      <div class="brand-icon">EK</div>
+      <div>
+        Earn Karo <span class="gradient-text">2.0</span>
+        <small>SMART EARNING HUB</small>
+      </div>
+    </div>
+
+    <div class="header-actions">
+      <span id="headerUser" class="muted"></span>
+
+      <button
+        id="headerLogout"
+        class="btn btn-secondary hidden"
+        type="button"
+      >
+        Logout
+      </button>
+    </div>
+  </header>
+
+  <main class="page">
+
+    <!-- LOGIN AND REGISTRATION -->
+    <section id="authSection" class="auth-layout">
+
+      <div class="hero">
+        <div class="hero-kicker">● YOUR EARNING DASHBOARD</div>
+
+        <h1>
+          Discover opportunities.<br>
+          <span class="gradient-text">Track your progress.</span>
+        </h1>
+
+        <p>
+          Ek jagah par earning apps, referral links aur commission status
+          ko manage karein.
+        </p>
+
+        <div class="feature-row">
+          <div class="feature">↗ Referral Hub<br>Apps & offers ek jagah</div>
+          <div class="feature">◇ Track Progress<br>Earning dashboard</div>
+        </div>
+
+        <p style="font-size:11px;margin-top:28px">
+          ✦ Secure-style interface · Responsive layout
+        </p>
+      </div>
+
+      <div class="auth-card glass">
+
+        <div class="tabs">
+          <button
+            class="tab active"
+            type="button"
+            data-auth-tab="login"
+          >
+            Login
+          </button>
+
+          <button
+            class="tab"
+            type="button"
+            data-auth-tab="register"
+          >
+            Create account
+          </button>
+        </div>
+
+        <h2 id="authTitle">Welcome back</h2>
+
+        <p id="authSubtitle" class="muted">
+          Apne account me login karein.
+        </p>
+
+        <form id="authForm" novalidate>
+
+          <label id="authNameLabel" class="hidden">
+            Full name
+
+            <input
+              id="authName"
+              name="name"
+              type="text"
+              autocomplete="name"
+              placeholder="Aapka naam"
+              disabled
+            >
+          </label>
+
+          <label>
+            Email
+
+            <input
+              id="authEmail"
+              name="email"
+              type="email"
+              autocomplete="email"
+              placeholder="you@example.com"
+              required
+            >
+          </label>
+
+          <label>
+            Password
+
+            <input
+              id="authPassword"
+              name="password"
+              type="password"
+              autocomplete="current-password"
+              placeholder="Kam se kam 8 characters"
+              minlength="8"
+              maxlength="72"
+              required
+            >
+          </label>
+
+          <button
+            class="btn btn-primary full"
+            type="submit"
+            id="authSubmit"
+          >
+            Login to dashboard →
+          </button>
+
+          <div
+            id="authMessage"
+            class="form-message"
+            role="status"
+            aria-live="polite"
+          ></div>
+        </form>
+
+        <div class="demo-box">
+          <strong>Account information</strong><br>
+          Registration ke liye apna naam, email aur password use karein.<br>
+          Admin account sirf authorized admin hi use kar sakta hai.
+        </div>
+
+      </div>
+    </section>
+
+    <!-- USER AND ADMIN DASHBOARD -->
+    <section id="dashboardSection" class="hidden">
+
+      <div class="dashboard-top">
+        <div>
+          <h1>
+            Welcome, <span id="dashboardName" class="gradient-text">User</span>
+          </h1>
+
+          <p class="muted" id="dashboardSubtitle">
+            Aapka earning dashboard.
+          </p>
+        </div>
+
+        <button
+          type="button"
+          class="btn btn-danger"
+          id="dashboardLogout"
+        >
+          Logout
+        </button>
+      </div>
+
+      <nav class="dashboard-nav">
+        <button
+          type="button"
+          class="btn active"
+          data-view="overview"
+        >
+          Overview
+        </button>
+
+        <button
+          type="button"
+          class="btn"
+          data-view="apps"
+        >
+          Earning Apps
+        </button>
+
+        <button
+          type="button"
+          class="btn"
+          data-view="earnings"
+        >
+          My Earnings
+        </button>
+
+        <button
+          type="button"
+          class="btn hidden"
+          id="adminNavButton"
+          data-view="admin"
+        >
+          Admin Panel
+        </button>
+      </nav>
+
+      <!-- OVERVIEW -->
+      <section id="view-overview" class="dashboard-view">
+
+        <div class="stats-grid">
+          <div class="stat-card">
+            <p>Available Earning Apps</p>
+            <h2 id="statApps">0</h2>
+          </div>
+
+          <div class="stat-card">
+            <p>My Referral Clicks</p>
+            <h2 id="statClicks">—</h2>
+          </div>
+
+          <div class="stat-card">
+            <p>My Commission</p>
+            <h2 id="statCommission">—</h2>
+          </div>
+        </div>
+
+        <div class="panel glass">
+          <h2>Welcome to Earn Karo 2.0</h2>
+
+          <p class="muted">
+            Yahan aap available earning apps dekh sakte hain.
+            App ke referral link par click karke uski official website
+            par ja sakte hain.
+          </p>
+
+          <button
+            type="button"
+            class="btn btn-primary"
+            data-view="apps"
+          >
+            Explore earning apps →
+          </button>
+        </div>
+
+        <div class="panel glass">
+          <h2>Important information</h2>
+
+          <p class="muted">
+            Earning aur commission ki asli tracking tabhi possible hogi
+            jab partner app ya website tracking data provide karegi.
+            Abhi dashboard sirf backend se available app information
+            load karta hai.
+          </p>
+        </div>
+
+      </section>
+
+      <!-- EARNING APPS -->
+      <section id="view-apps" class="dashboard-view hidden">
+
+        <div class="panel glass">
+          <h2>Earning Apps</h2>
+
+          <p class="muted">
+            Available earning platforms aur unke referral links.
+          </p>
+
+          <label>
+            Search apps
+
+            <input
+              id="appSearch"
+              type="search"
+              placeholder="App ka naam search karein..."
+            >
+          </label>
+
+          <div
+            id="appsMessage"
+            class="form-message"
+            role="status"
+          ></div>
+
+          <div id="appsGrid" class="apps-grid">
+            <div class="empty-state">Apps load ho rahe hain...</div>
+          </div>
+        </div>
+
+      </section>
+
+      <!-- MY EARNINGS -->
+      <section id="view-earnings" class="dashboard-view hidden">
+
+        <div class="panel glass">
+          <h2>My Earnings & Commission</h2>
+
+          <p class="muted">
+            Is section me abhi real commission data connected nahi hai.
+            Aapki partner apps se earning information lane ke liye
+            tracking integration ya API ki zaroorat hogi.
+          </p>
+
+          <div class="empty-state">
+            <h3>Commission tracking</h3>
+            Commission records aur referral clicks ke liye backend
+            tracking ko alag se integrate karna hoga.
+          </div>
+        </div>
+
+      </section>
+
+      <!-- ADMIN PANEL -->
+      <section id="view-admin" class="dashboard-view hidden">
+
+        <div class="panel glass">
+          <h2>Admin Panel</h2>
+
+          <p class="muted">
+            Yahan se nayi earning app add karein.
+            Sirf authorized admin account hi app add kar sakta hai.
+          </p>
+
+          <form id="addAppForm">
+
+            <div class="form-grid">
+
+              <label>
+                App name
+
+                <input
+                  id="newAppName"
+                  name="name"
+                  type="text"
+                  placeholder="Example: Example Rewards"
+                  required
+                >
+              </label>
+
+              <label>
+                Category
+
+                <input
+                  id="newAppCategory"
+                  name="category"
+                  type="text"
+                  placeholder="Rewards, Shopping, etc."
+                  required
+                >
+              </label>
+
+              <label class="full-span">
+                Description
+
+                <textarea
+                  id="newAppDescription"
+                  name="description"
+                  rows="3"
+                  placeholder="App ke baare me details"
+                  required
+                ></textarea>
+              </label>
+
+              <label class="full-span">
+                Referral URL
+
+                <input
+                  id="newAppReferralUrl"
+                  name="referral_url"
+                  type="url"
+                  placeholder="https://example.com"
+                  required
+                >
+              </label>
+
+            </div>
+
+            <button
+              class="btn btn-primary"
+              id="addAppSubmit"
+              type="submit"
+            >
+              Add Earning App
+            </button>
+
+            <div
+              id="adminMessage"
+              class="form-message"
+              role="status"
+              aria-live="polite"
+            ></div>
+
+          </form>
+        </div>
+
+      </section>
+
+    </section>
+
+  </main>
+
+  <footer class="site-footer">
+    Earn Karo 2.0 · Smart Earning Hub · Use earning platforms responsibly.
+  </footer>
+
+  <script src="script.js"></script>
+
+</body>
+</html>
