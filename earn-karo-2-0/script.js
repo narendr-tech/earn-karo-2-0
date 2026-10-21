@@ -5,7 +5,7 @@
    Frontend connected to Node.js backend
    ========================================= */
 
-const API_BASE = "http://localhost:5000";
+const API_BASE = "https://earn-karo-2-0.onrender.com";
 
 const TOKEN_KEY = "earnKaroToken";
 const USER_KEY = "earnKaroUser";
